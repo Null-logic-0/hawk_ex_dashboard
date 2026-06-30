@@ -73,7 +73,4 @@ defmodule HawkExDashboard.CsvLive do
     </Layouts.app>
     """
   end
-
-  defp format_dt(nil), do: "—"
-  defp format_dt(dt), do: Calendar.strftime(dt, "%b %d %H:%M")
 end

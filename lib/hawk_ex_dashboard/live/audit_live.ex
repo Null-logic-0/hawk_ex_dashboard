@@ -1,108 +1,88 @@
 defmodule HawkExDashboard.AuditLive do
   use Phoenix.LiveView
   use HawkExDashboard.HTML
+  use HawkExDashboard.PaginatedSearch, path: "/hawk_ex/audit"
+  import HawkExDashboard.{Table, PageHeading}
 
   alias HawkEx.Audit
 
   @impl true
   def mount(_params, _session, socket) do
-    socket =
+    {:ok,
+     socket
+     |> assign(:page_title, "Audit Logs")
+     |> assign(:current_path, "/hawk_ex/audit")
+     |> assign(:total_pages, 1)
+     |> assign(:total_count, 0)
+     |> assign(:loading, true)
+     |> assign(:error, nil)
+     |> stream(:logs, [])}
+  end
+
+  @impl true
+  def handle_params(params, _uri, socket) do
+    {:noreply, paginated_search_params(socket, params, &load_data/3)}
+  end
+
+  defp load_data(socket, page, search) do
+    start_async(socket, :load_logs, fn ->
+      Audit.recent(page: page, per_page: 20, search: search)
+    end)
+  end
+
+  @impl true
+  def handle_async(:load_logs, {:ok, audit_page}, socket) do
+    handle_paginated_result(socket, "/hawk_ex/audit", audit_page, fn socket, result ->
       socket
-      |> assign(:page_title, "Audit Logs")
-      |> assign(:current_path, "/hawk_ex/audit")
-      |> assign(:filter, "")
-      |> load_page(1)
-
-    {:ok, socket}
+      |> assign(:total_pages, result.total_pages)
+      |> assign(:total_count, result.total_count)
+      |> stream(:logs, result.entries, reset: true)
+    end)
   end
 
-  @impl true
-  def handle_event("filter", %{"value" => value}, socket) do
-    {:noreply, assign(socket, :filter, value)}
-  end
-
-  @impl true
-  def handle_event("goto_page", %{"page" => page}, socket) do
-    {:noreply, load_page(socket, String.to_integer(page))}
+  def handle_async(:load_logs, {:exit, reason}, socket) do
+    {:noreply,
+     socket
+     |> assign(:loading, false)
+     |> assign(:error, "Couldn't load audit logs (#{inspect(reason)})")}
   end
 
   @impl true
   def render(assigns) do
     ~H"""
     <Layouts.app current_path={@current_path}>
-      <h1 class="text-2xl font-bold mb-6">Audit Logs</h1>
+      <.heading title={@page_title} />
 
-      <div class="card bg-base-100 shadow">
-        <div class="card-body">
-          <%!-- Filter input --%>
-          <div class="mb-4">
-            <input
-              type="text"
-              placeholder="Filter by action..."
-              class="input input-bordered w-full max-w-sm"
-              phx-keyup="filter"
-              value={@filter}
-            />
-          </div>
-
-          <div class="overflow-x-auto">
-            <table class="table table-zebra">
-              <thead>
-                <tr>
-                  <th>Action</th>
-                  <th>Actor</th>
-                  <th>Resource</th>
-                  <th>Type</th>
-                  <th>When</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr :for={log <- filtered_logs(@logs, @filter)}>
-                  <td>
-                    <span class="badge badge-neutral badge-sm">
-                      <%= log.action %>
-                    </span>
-                  </td>
-                  <td class="font-mono text-xs">
-                    <%= log.actor_id || "system" %>
-                  </td>
-                  <td class="font-mono text-xs">
-                    <%= log.resource_id || "—" %>
-                  </td>
-                  <td class="text-sm"><%= log.resource_type || "—" %></td>
-                  <td class="text-sm opacity-70">
-                    <%= format_dt(log.inserted_at) %>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+      <.table
+        id="audit-logs"
+        stream={@streams.logs}
+        page={@page}
+        total_pages={@total_pages}
+        total_count={@total_count}
+        search={@search}
+        search_placeholder="Search by action…"
+        loading={@loading}
+        error={@error}
+        empty_title="No audit activity yet"
+        empty_message="Once your app starts emitting events, they'll show up here."
+      >
+        <:col :let={log} label="Action">
+          <span class="badge badge-primary badge-sm">{log.action}</span>
+        </:col>
+        <:col :let={log} label="Actor">
+          <span class="font-mono-data text-xs">{log.actor_id || "system"}</span>
+        </:col>
+        <:col :let={log} label="Resource">
+          <span class="font-mono-data text-xs">{log.resource_id || "—"}</span>
+        </:col>
+        <:col :let={log} label="Type">
+          <span class="text-sm">{log.resource_type || "—"}</span>
+        </:col>
+        <:col :let={log} label="When">
+          <span class="text-sm opacity-70">{format_dt(log.inserted_at)}</span>
+        </:col>
+      </.table>
     </Layouts.app>
     """
   end
-
-  defp load_page(socket, page) do
-    audit_page = Audit.recent(page: page, per_page: 20)
-
-    socket
-    |> assign(:logs, audit_page.entries)
-    |> assign(:page, audit_page.page)
-    |> assign(:total_pages, audit_page.total_pages)
-    |> assign(:total_count, audit_page.total_count)
-  end
-
-  # ---Private-----------------------------------------------
-
-  defp filtered_logs(logs, ""), do: logs
-
-  defp filtered_logs(logs, filter) do
-    Enum.filter(logs, fn log ->
-      String.contains?(log.action, filter)
-    end)
-  end
-
-  defp format_dt(nil), do: "—"
-  defp format_dt(dt), do: Calendar.strftime(dt, "%b %d %H:%M")
 end

@@ -10,6 +10,8 @@ defmodule HawkExDashboard.HTML do
     quote do
       use Phoenix.Component
 
+      import HawkExDashboard.Formatters
+
       alias HawkExDashboard.Layouts
 
       alias Phoenix.LiveView.JS
