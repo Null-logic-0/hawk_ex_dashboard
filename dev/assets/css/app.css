@@ -9,31 +9,43 @@
     default: true;
     color-scheme: light;
 
-    --color-base-100: #F7F8FA;
-    --color-base-200: #FFFFFF;
-    --color-base-300: #FFFFFF;
-    --color-base-content: #14171F;
+    --color-base-100: #FDF6E3;
+    /* Solarized base3 — page background */
+    --color-base-200: #EEE8D5;
+    /* Solarized base2 — card surfaces */
+    --color-base-300: #E4DDC4;
+    /* slightly deeper surface for contrast */
+    --color-base-content: #073642;
+    /* Solarized base02 — primary text */
 
-    --color-primary: #C9701A;
-    --color-primary-content: #FFFFFF;
+    --color-primary: #6E4A7E;
+    /* Elixir purple */
+    --color-primary-content: #FDF6E3;
 
-    --color-secondary: #57607A;
-    --color-secondary-content: #FFFFFF;
+    --color-secondary: #657B83;
+    /* Solarized base00 — secondary text/UI */
+    --color-secondary-content: #FDF6E3;
 
-    --color-accent: #2563EB;
-    --color-accent-content: #FFFFFF;
+    --color-accent: #268BD2;
+    /* Solarized blue */
+    --color-accent-content: #FDF6E3;
 
-    --color-neutral: #E3E6EC;
-    --color-neutral-content: #14171F;
+    --color-neutral: #93A1A1;
+    /* Solarized base1 — borders */
+    --color-neutral-content: #073642;
 
-    --color-success: #15803D;
-    --color-success-content: #FFFFFF;
-    --color-warning: #B45309;
-    --color-warning-content: #FFFFFF;
-    --color-error: #DC2626;
-    --color-error-content: #FFFFFF;
-    --color-info: #2563EB;
-    --color-info-content: #FFFFFF;
+    --color-success: #859900;
+    /* Solarized green */
+    --color-success-content: #FDF6E3;
+    --color-warning: #B58900;
+    /* Solarized yellow */
+    --color-warning-content: #FDF6E3;
+    --color-error: #DC322F;
+    /* Solarized red */
+    --color-error-content: #FDF6E3;
+    --color-info: #268BD2;
+    /* Solarized blue */
+    --color-info-content: #FDF6E3;
 
     --radius-box: 0.625rem;
     --radius-field: 0.375rem;

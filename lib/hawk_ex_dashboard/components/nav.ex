@@ -8,8 +8,10 @@ defmodule HawkExDashboard.Nav do
 
   def sidebar(assigns) do
     ~H"""
-    <ul class="menu p-4 w-64 min-h-full text-sm bg-base-100 shadow-lg">
+    <ul class="menu p-4 w-64 min-h-full bg-base-100 shadow-lg">
       <.app_logo />
+
+      <div class="divider"></div>
       <.nav_item path="/hawk_ex" label="Overview" current={@current_path} />
       <.nav_item path="/hawk_ex/billing" label="Billing" current={@current_path} />
       <.nav_item path="/hawk_ex/audit" label="Audit Logs" current={@current_path} />
@@ -24,7 +26,7 @@ defmodule HawkExDashboard.Nav do
 
   defp nav_item(assigns) do
     ~H"""
-    <li>
+    <li class="text-sm">
       <.link
         navigate={@path}
         class={if @current == @path, do: "bg-base-200 text-primary font-semibold", else: "font-medium"}

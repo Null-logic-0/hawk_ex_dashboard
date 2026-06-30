@@ -6,17 +6,24 @@ defmodule HawkExDashboard.AuditLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok,
-     socket
-     |> assign(:page_title, "Audit Logs")
-     |> assign(:logs, Audit.recent(limit: 50))
-     |> assign(:filter, "")
-     |> assign(:current_path, "/hawk_ex/audit")}
+    socket =
+      socket
+      |> assign(:page_title, "Audit Logs")
+      |> assign(:current_path, "/hawk_ex/audit")
+      |> assign(:filter, "")
+      |> load_page(1)
+
+    {:ok, socket}
   end
 
   @impl true
   def handle_event("filter", %{"value" => value}, socket) do
     {:noreply, assign(socket, :filter, value)}
+  end
+
+  @impl true
+  def handle_event("goto_page", %{"page" => page}, socket) do
+    {:noreply, load_page(socket, String.to_integer(page))}
   end
 
   @impl true
@@ -75,6 +82,18 @@ defmodule HawkExDashboard.AuditLive do
     </Layouts.app>
     """
   end
+
+  defp load_page(socket, page) do
+    audit_page = Audit.recent(page: page, per_page: 20)
+
+    socket
+    |> assign(:logs, audit_page.entries)
+    |> assign(:page, audit_page.page)
+    |> assign(:total_pages, audit_page.total_pages)
+    |> assign(:total_count, audit_page.total_count)
+  end
+
+  # ---Private-----------------------------------------------
 
   defp filtered_logs(logs, ""), do: logs
 

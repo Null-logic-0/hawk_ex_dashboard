@@ -1,6 +1,8 @@
 defmodule HawkExDashboard.OverviewLive do
   use Phoenix.LiveView
   use HawkExDashboard.HTML
+  use HawkExDashboard.PaginatedSearch, path: "/hawk_ex"
+  import HawkExDashboard.{Table, PageHeading}
 
   alias HawkEx.Audit
 
@@ -10,60 +12,73 @@ defmodule HawkExDashboard.OverviewLive do
      socket
      |> assign(:page_title, "Overview")
      |> assign(:current_path, "/hawk_ex")
-     |> assign(:recent_events, Audit.recent(limit: 10))}
+     |> assign(:total_pages, 1)
+     |> assign(:total_count, 0)
+     |> assign(:loading, true)
+     |> assign(:error, nil)
+     |> stream(:recent_events, [])}
+  end
+
+  @impl true
+  def handle_params(params, _uri, socket) do
+    {:noreply, paginated_search_params(socket, params, &load_data/3)}
+  end
+
+  defp load_data(socket, page, search) do
+    start_async(socket, :load_recent, fn ->
+      Audit.recent(page: page, per_page: 20, search: search)
+    end)
+  end
+
+  @impl true
+  def handle_async(:load_recent, {:ok, page_result}, socket) do
+    handle_paginated_result(socket, "/hawk_ex", page_result, fn socket, result ->
+      socket
+      |> assign(:total_pages, result.total_pages)
+      |> assign(:total_count, result.total_count)
+      |> stream(:recent_events, result.entries, reset: true)
+    end)
+  end
+
+  def handle_async(:load_recent, {:exit, reason}, socket) do
+    {:noreply,
+     socket
+     |> assign(:loading, false)
+     |> assign(:error, "Couldn't load recent activity (#{inspect(reason)})")}
   end
 
   @impl true
   def render(assigns) do
     ~H"""
     <Layouts.app current_path={@current_path}>
-          <h1 class="text-2xl font-bold mb-6">Overview</h1>
+      <.heading title={@page_title} />
 
-          <div class="stats shadow w-full mb-6">
-            <div class="stat">
-              <div class="stat-title">Recent Audit Events</div>
-              <div class="stat-value"><%= length(@recent_events) %></div>
-              <div class="stat-desc">Last 10 entries</div>
-            </div>
-          </div>
-
-          <div class="card bg-base-100 shadow">
-            <div class="card-body">
-              <h2 class="card-title">Recent Activity</h2>
-              <div class="overflow-x-auto">
-                <table class="table table-zebra">
-                  <thead>
-                    <tr>
-                      <th>Action</th>
-                      <th>Actor</th>
-                      <th>Resource</th>
-                      <th>When</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr :for={log <- @recent_events}>
-                      <td>
-                        <span class="badge badge-neutral">
-                          <%= log.action %>
-                        </span>
-                      </td>
-                      <td class="font-mono text-xs">
-                        <%= log.actor_id || "system" %>
-                      </td>
-                      <td class="font-mono text-xs">
-                        <%= log.resource_type || "—" %>
-                      </td>
-                      <td class="text-sm opacity-70">
-                        <%= format_dt(log.inserted_at) %>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-
+      <.table
+        id="overview-recent-activity"
+        stream={@streams.recent_events}
+        page={@page}
+        total_pages={@total_pages}
+        total_count={@total_count}
+        search={@search}
+        search_placeholder="Search by action…"
+        loading={@loading}
+        error={@error}
+        empty_title="No activity yet"
+        empty_message="Once your app starts emitting events, they'll show up here."
+      >
+        <:col :let={log} label="Action">
+          <span class="badge badge-primary badge-sm">{log.action}</span>
+        </:col>
+        <:col :let={log} label="Actor">
+          <span class="font-mono-data text-xs">{log.actor_id || "system"}</span>
+        </:col>
+        <:col :let={log} label="Resource">
+          <span class="font-mono-data text-xs">{log.resource_type || "—"}</span>
+        </:col>
+        <:col :let={log} label="When">
+          <span class="text-sm opacity-70">{format_dt(log.inserted_at)}</span>
+        </:col>
+      </.table>
     </Layouts.app>
     """
   end
