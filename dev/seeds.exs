@@ -12,6 +12,8 @@ import Ecto.Query
 alias HawkEx.Billing.{Plan, Feature, PlanFeature, Subscription}
 alias HawkEx.Audit.Log
 alias HawkExDev.Repo
+alias HawkEx.CSV.Export
+
 
 # ----Clear existing data------------------------------------------------------------
 
@@ -20,6 +22,8 @@ Repo.delete_all(Subscription)
 Repo.delete_all(PlanFeature)
 Repo.delete_all(Feature)
 Repo.delete_all(Plan)
+Repo.delete_all(Export)
+
 
 # ----Plans------------------------------------------------------------
 
@@ -159,7 +163,7 @@ actions = [
 
 actor_emails = [
   "jane@acme.co", "bob@globex.com", "alice@initech.com",
-  "dev@hooli.com", "admin@stark.io", nil  # nil = system action
+  "dev@hooli.com", "admin@stark.io", nil
 ]
 
 audit_entries =
@@ -187,6 +191,111 @@ audit_entries =
   end
   |> Enum.sort_by(& &1.inserted_at, {:desc, DateTime})
 
+
+
+  # ---CSV Exports-------------------------------------------------------------
+
+  File.rm_rf!("priv/exports")
+  File.mkdir_p!("priv/exports")
+
+  export_types = ["subscriptions", "audit_logs"]
+
+  export_status_weights = [
+    {"completed", 70},
+    {"pending", 10},
+    {"failed", 20}
+  ]
+
+  weighted_export_status = fn ->
+    total = Enum.reduce(export_status_weights, 0, fn {_, w}, acc -> acc + w end)
+    roll = :rand.uniform(total)
+
+    {status, _} =
+      Enum.reduce_while(export_status_weights, {nil, roll}, fn {status, weight}, {_, remaining} ->
+        if remaining <= weight do
+          {:halt, {status, 0}}
+        else
+          {:cont, {nil, remaining - weight}}
+        end
+      end)
+
+    status
+  end
+
+  failure_reasons = [
+    "S3 upload timed out after 30s",
+    "Database connection lost mid-export",
+    "Invalid date range in export parameters",
+    "Export exceeded maximum row limit (50,000)"
+  ]
+
+  fake_csv_content = fn
+    "subscriptions", row_count ->
+      header = "id,account_id,plan,status\n"
+      rows = for _ <- 1..row_count, do: "#{Ecto.UUID.generate()},#{Ecto.UUID.generate()},pro,active\n"
+      header <> Enum.join(rows)
+
+    "audit_logs", row_count ->
+      header = "id,action,inserted_at\n"
+      rows =
+        for _ <- 1..row_count,
+            do: "#{Ecto.UUID.generate()},subscription.created,#{DateTime.utc_now()}\n"
+      header <> Enum.join(rows)
+  end
+
+  export_entries =
+    for _ <- 1..45 do
+      %{account_id: account_id} = Enum.random(subscriptions)
+      export_type = Enum.random(export_types)
+      status = weighted_export_status.()
+      minutes_ago = :rand.uniform(60 * 24 * 14)
+
+      inserted_at =
+        DateTime.utc_now()
+        |> DateTime.add(-minutes_ago, :minute)
+        |> DateTime.truncate(:second)
+
+      row_count =
+        case status do
+          "completed" -> Enum.random(10..500)
+          _ -> nil
+        end
+
+      file_path =
+        case status do
+          "completed" ->
+            path = "priv/exports/#{export_type}_#{Ecto.UUID.generate()}.csv"
+            File.write!(path, fake_csv_content.(export_type, row_count))
+            path
+
+          _ ->
+            nil
+        end
+
+      error_message =
+        case status do
+          "failed" -> Enum.random(failure_reasons)
+          _ -> nil
+        end
+
+      %{
+        id: Ecto.UUID.generate(),
+        account_id: account_id,
+        export_type: export_type,
+        status: status,
+        row_count: row_count,
+        file_path: file_path,
+        error_message: error_message,
+        oban_job_id: nil,
+        inserted_at: inserted_at,
+        updated_at: inserted_at
+      }
+    end
+    |> Enum.sort_by(& &1.inserted_at, {:desc, DateTime})
+
+  Repo.insert_all(Export, export_entries)
+
+  IO.puts("Seeded #{length(export_entries)} CSV export jobs")
 Repo.insert_all(Log, audit_entries)
 
 IO.puts("Seeded #{length(audit_entries)} audit log entries")

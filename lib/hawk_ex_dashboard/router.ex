@@ -53,6 +53,10 @@ defmodule HawkExDashboard.Router do
       end
 
       scope path, alias: false, as: :hawk_ex_dashboard do
+        get("/csv/:id/download", HawkExDashboard.ExportDownloadController, :show)
+      end
+
+      scope path, alias: false, as: :hawk_ex_dashboard do
         import Phoenix.LiveView.Router, only: [live: 4, live_session: 3]
         pipe_through(:browser)
 
