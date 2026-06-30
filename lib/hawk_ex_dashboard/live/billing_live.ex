@@ -1,106 +1,105 @@
 defmodule HawkExDashboard.BillingLive do
   use Phoenix.LiveView
   use HawkExDashboard.HTML
+  use HawkExDashboard.PaginatedSearch, path: "/hawk_ex/billing"
+  import HawkExDashboard.{Table, PageHeading, PlanCard}
 
-  alias HawkEx.Billing.{Plan, Subscription}
+  alias HawkEx.Billing
   alias HawkEx.Config
-  import Ecto.Query
+  alias HawkEx.Billing.Plan
 
   @impl true
   def mount(_params, _session, socket) do
     plans = Config.repo().all(Plan)
 
-    subscriptions =
-      Config.repo().all(
-        from(s in Subscription,
-          where: s.status in ^Subscription.active_statuses(),
-          preload: [:plan],
-          order_by: [desc: s.inserted_at],
-          limit: 50
-        )
-      )
-
     {:ok,
      socket
      |> assign(:page_title, "Billing")
+     |> assign(:current_path, "/hawk_ex/billing")
      |> assign(:plans, plans)
-     |> assign(:subscriptions, subscriptions)
-     |> assign(:current_path, "/hawk_ex/billing")}
+     |> assign(:total_pages, 1)
+     |> assign(:total_count, 0)
+     |> assign(:loading, true)
+     |> assign(:error, nil)
+     |> stream(:subscriptions, [])}
+  end
+
+  @impl true
+  def handle_params(params, _uri, socket) do
+    {:noreply, paginated_search_params(socket, params, &load_data/3)}
+  end
+
+  defp load_data(socket, page, search) do
+    start_async(socket, :load_subscriptions, fn ->
+      Billing.recent_subscriptions(page: page, per_page: 20, search: search)
+    end)
+  end
+
+  @impl true
+  def handle_async(:load_subscriptions, {:ok, sub_page}, socket) do
+    handle_paginated_result(socket, "/hawk_ex/billing", sub_page, fn socket, result ->
+      socket
+      |> assign(:total_pages, result.total_pages)
+      |> assign(:total_count, result.total_count)
+      |> stream(:subscriptions, result.entries, reset: true)
+    end)
+  end
+
+  def handle_async(:load_subscriptions, {:exit, reason}, socket) do
+    {:noreply,
+     socket
+     |> assign(:loading, false)
+     |> assign(:error, "Couldn't load subscriptions (#{inspect(reason)})")}
   end
 
   @impl true
   def render(assigns) do
     ~H"""
     <Layouts.app current_path={@current_path}>
-      <h1 class="text-2xl font-bold mb-6">Billing</h1>
+      <.heading title={@page_title} />
 
       <div class="mb-8">
         <h2 class="text-lg font-semibold mb-3">Plans</h2>
         <div class="flex gap-4 flex-wrap">
-          <div :for={plan <- @plans}
-            class="card bg-base-100 shadow w-48">
-            <div class="card-body p-4">
-              <h3 class="font-bold"><%= plan.display_name %></h3>
-              <span class={[
-                "badge badge-sm",
-                plan.status == "active" && "badge-success",
-                plan.status == "archived" && "badge-ghost"
-              ]}>
-                <%= plan.status %>
-              </span>
-              <p class="text-xs opacity-60 mt-1">
-                Trial: <%= plan.trial_days %> days
-              </p>
-            </div>
-          </div>
+          <.plan_card :for={plan <- @plans} plan={plan} />
         </div>
       </div>
 
-      <%!-- Active subscriptions --%>
-      <div>
-        <h2 class="text-lg font-semibold mb-3">
-          Active Subscriptions
-          <span class="badge badge-neutral ml-2">
-            <%= length(@subscriptions) %>
-          </span>
-        </h2>
-        <div class="card bg-base-100 shadow">
-          <div class="overflow-x-auto">
-            <table class="table table-zebra">
-              <thead>
-                <tr>
-                  <th>Account</th>
-                  <th>Plan</th>
-                  <th>Status</th>
-                  <th>Since</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr :for={sub <- @subscriptions}>
-                  <td class="font-mono text-xs"><%= sub.account_id %></td>
-                  <td>
-                    <span class="badge badge-primary badge-sm">
-                      <%= sub.plan.display_name %>
-                    </span>
-                  </td>
-                  <td>
-                    <span class={[
-                      "badge badge-sm",
-                      sub.status == "active" && "badge-success",
-                      sub.status == "trialing" && "badge-warning"
-                    ]}>
-                      <%= sub.status %>
-                    </span>
-                  </td>
-                  <td class="text-sm opacity-70">
-                    <%= format_dt(sub.inserted_at) %>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+        <h2 class="text-lg font-semibold mb-3">Active Subscriptions</h2>
+
+        <.table
+          id="billing-subscriptions"
+          stream={@streams.subscriptions}
+          page={@page}
+          total_pages={@total_pages}
+          total_count={@total_count}
+          search={@search}
+          search_placeholder="Search by account ID…"
+          loading={@loading}
+          error={@error}
+          empty_title="No subscriptions yet"
+          empty_message="Subscriptions will appear here once accounts subscribe."
+        >
+          <:col :let={sub} label="Account">
+            <span class="font-mono-data text-xs">{sub.account_id}</span>
+          </:col>
+          <:col :let={sub} label="Plan">
+            <span class="badge badge-primary badge-sm">{sub.plan.display_name}</span>
+          </:col>
+          <:col :let={sub} label="Status">
+            <span class={[
+              "badge badge-sm",
+              sub.status == "active" && "badge-success",
+              sub.status == "trialing" && "badge-warning"
+            ]}>
+              {sub.status}
+            </span>
+          </:col>
+          <:col :let={sub} label="Since">
+            <span class="text-sm opacity-70">{format_dt(sub.inserted_at)}</span>
+          </:col>
+        </.table>
+
     </Layouts.app>
     """
   end
