@@ -16,7 +16,8 @@ defmodule HawkExDashboard.MixProject do
       docs: docs(),
       aliases: aliases(),
       compilers: Mix.compilers(),
-      elixirc_paths: elixirc_paths(Mix.env())
+      elixirc_paths: elixirc_paths(Mix.env()),
+      listeners: [Phoenix.CodeReloader]
     ]
   end
 
@@ -48,6 +49,8 @@ defmodule HawkExDashboard.MixProject do
       {:postgrex, ">= 0.0.0"},
       {:jason, "~> 1.4"},
       {:bandit, "~> 1.0", only: :dev},
+      {:esbuild, "~> 0.9", runtime: Mix.env() == :dev},
+      {:tailwind, "~> 0.3", runtime: Mix.env() == :dev},
 
       # Dev/Test only
       {:ex_doc, "~> 0.31", only: :dev, runtime: false}

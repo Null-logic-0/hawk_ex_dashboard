@@ -1,5 +1,6 @@
 defmodule HawkExDashboard.CsvLive do
   use Phoenix.LiveView
+  use HawkExDashboard.HTML
 
   alias HawkEx.Config
   alias HawkEx.CSV.Export
@@ -18,13 +19,14 @@ defmodule HawkExDashboard.CsvLive do
     {:ok,
      socket
      |> assign(:page_title, "CSV Exports")
+     |> assign(:current_path, "/hawk_ex/csv")
      |> assign(:exports, exports)}
   end
 
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="p-6">
+    <Layouts.app current_path={@current_path}>
       <h1 class="text-2xl font-bold mb-6">CSV Exports</h1>
 
       <div class="card bg-base-100 shadow">
@@ -68,7 +70,7 @@ defmodule HawkExDashboard.CsvLive do
           </table>
         </div>
       </div>
-    </div>
+    </Layouts.app>
     """
   end
 

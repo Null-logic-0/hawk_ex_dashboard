@@ -1,5 +1,6 @@
 defmodule HawkExDashboard.AuditLive do
   use Phoenix.LiveView
+  use HawkExDashboard.HTML
 
   alias HawkEx.Audit
 
@@ -9,7 +10,8 @@ defmodule HawkExDashboard.AuditLive do
      socket
      |> assign(:page_title, "Audit Logs")
      |> assign(:logs, Audit.recent(limit: 50))
-     |> assign(:filter, "")}
+     |> assign(:filter, "")
+     |> assign(:current_path, "/hawk_ex/audit")}
   end
 
   @impl true
@@ -20,7 +22,7 @@ defmodule HawkExDashboard.AuditLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="p-6">
+    <Layouts.app current_path={@current_path}>
       <h1 class="text-2xl font-bold mb-6">Audit Logs</h1>
 
       <div class="card bg-base-100 shadow">
@@ -70,7 +72,7 @@ defmodule HawkExDashboard.AuditLive do
           </div>
         </div>
       </div>
-    </div>
+    </Layouts.app>
     """
   end
 

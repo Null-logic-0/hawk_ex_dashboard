@@ -1,15 +1,15 @@
 defmodule HawkExDashboard.Nav do
   @moduledoc false
-  use Phoenix.Component
+  use HawkExDashboard.HTML
+
+  import HawkExDashboard.Logo
 
   attr(:current_path, :string, required: true)
 
   def sidebar(assigns) do
     ~H"""
-    <ul class="menu p-4 w-64 min-h-full bg-base-100 shadow-lg">
-      <li class="menu-title">
-        <span class="text-lg font-bold text-primary">🦅 HAWK_EX</span>
-      </li>
+    <ul class="menu p-4 w-64 min-h-full text-sm bg-base-100 shadow-lg">
+      <.app_logo />
       <.nav_item path="/hawk_ex" label="Overview" current={@current_path} />
       <.nav_item path="/hawk_ex/billing" label="Billing" current={@current_path} />
       <.nav_item path="/hawk_ex/audit" label="Audit Logs" current={@current_path} />
@@ -27,7 +27,7 @@ defmodule HawkExDashboard.Nav do
     <li>
       <.link
         navigate={@path}
-        class={if @current == @path, do: "active", else: ""}
+        class={if @current == @path, do: "bg-base-200 text-primary font-semibold", else: "font-medium"}
       >
         <%= @label %>
       </.link>

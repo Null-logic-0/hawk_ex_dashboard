@@ -1,0 +1,80 @@
+@import "tailwindcss";
+@source "../css";
+@source "../js";
+
+@plugin "daisyui";
+
+@plugin "daisyui/theme" {
+    name: "hawk_ex_light";
+    default: true;
+    color-scheme: light;
+
+    --color-base-100: #F7F8FA;
+    --color-base-200: #FFFFFF;
+    --color-base-300: #FFFFFF;
+    --color-base-content: #14171F;
+
+    --color-primary: #C9701A;
+    --color-primary-content: #FFFFFF;
+
+    --color-secondary: #57607A;
+    --color-secondary-content: #FFFFFF;
+
+    --color-accent: #2563EB;
+    --color-accent-content: #FFFFFF;
+
+    --color-neutral: #E3E6EC;
+    --color-neutral-content: #14171F;
+
+    --color-success: #15803D;
+    --color-success-content: #FFFFFF;
+    --color-warning: #B45309;
+    --color-warning-content: #FFFFFF;
+    --color-error: #DC2626;
+    --color-error-content: #FFFFFF;
+    --color-info: #2563EB;
+    --color-info-content: #FFFFFF;
+
+    --radius-box: 0.625rem;
+    --radius-field: 0.375rem;
+    --radius-selector: 1rem;
+
+    --border: 1px;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400&display=swap');
+
+@theme {
+    --font-display: "Space Grotesk", sans-serif;
+    --font-body: "Inter", sans-serif;
+    --font-mono: "JetBrains Mono", monospace;
+}
+
+body {
+    font-family: var(--font-body);
+}
+
+.font-display {
+    font-family: var(--font-display);
+    font-weight: 600;
+}
+
+.font-mono-data {
+    font-family: var(--font-mono);
+    font-weight: 400;
+}
+
+.hawk-cut {
+    position: relative;
+    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+}
+
+.hawk-cut::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--color-primary);
+}

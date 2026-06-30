@@ -18,9 +18,17 @@ config :hawk_ex_dashboard, HawkExDev.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4000],
   adapter: Bandit.PhoenixAdapter,
   server: true,
+  code_reloader: true,
+  render_errors: [formats: [html: HawkExDev.ErrorHTML], layout: false],
   live_view: [signing_salt: "hawk_ex_dev_salt"],
   secret_key_base: String.duplicate("dev_secret_key_base_not_for_prod", 2),
-  pubsub_server: HawkExDev.PubSub
+  pubsub_server: HawkExDev.PubSub,
+  live_reload: [
+    patterns: [
+      ~r"lib/hawk_ex_dashboard/.*(ex|heex)$",
+      ~r"dev/.*(ex|heex)$"
+    ]
+  ]
 
 # Hawk PubSub
 config :hawk_ex, pubsub: HawkExDev.PubSub

@@ -1,5 +1,6 @@
 defmodule HawkExDashboard.BillingLive do
   use Phoenix.LiveView
+  use HawkExDashboard.HTML
 
   alias HawkEx.Billing.{Plan, Subscription}
   alias HawkEx.Config
@@ -30,7 +31,7 @@ defmodule HawkExDashboard.BillingLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="p-6">
+    <Layouts.app current_path={@current_path}>
       <h1 class="text-2xl font-bold mb-6">Billing</h1>
 
       <div class="mb-8">
@@ -100,7 +101,7 @@ defmodule HawkExDashboard.BillingLive do
           </div>
         </div>
       </div>
-    </div>
+    </Layouts.app>
     """
   end
 

@@ -43,8 +43,18 @@ defmodule HawkExDashboard.Router do
   """
   defmacro hawk_ex_dashboard(path, opts \\ []) do
     quote bind_quoted: binding() do
+      pipeline :hawk_ex_dashboard_assets do
+        plug(:accepts, ["*"])
+      end
+
+      scope path, alias: false, as: :hawk_ex_dashboard_assets do
+        pipe_through(:hawk_ex_dashboard_assets)
+        get("/assets/*path", HawkExDashboard.AssetController, :show)
+      end
+
       scope path, alias: false, as: :hawk_ex_dashboard do
         import Phoenix.LiveView.Router, only: [live: 4, live_session: 3]
+        pipe_through(:browser)
 
         live_session :hawk_ex_dashboard,
           root_layout: {HawkExDashboard.Layouts, :root},

@@ -10,15 +10,10 @@ defmodule HawkExDev.Router do
     plug(:put_root_layout, html: {HawkExDashboard.Layouts, :root})
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
+
   end
 
-  scope "/" do
-    pipe_through(:browser)
+  get "/", HawkExDev.PageController, []
 
-    # Redirect root to dashboard
-    get("/", HawkExDev.PageController, [])
-
-    # Mount the dashboard
-    hawk_ex_dashboard("/hawk_ex")
-  end
+  hawk_ex_dashboard "/hawk_ex"
 end

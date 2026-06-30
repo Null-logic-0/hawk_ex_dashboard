@@ -1,6 +1,6 @@
 defmodule HawkExDashboard.OverviewLive do
   use Phoenix.LiveView
-  import HawkExDashboard.Nav
+  use HawkExDashboard.HTML
 
   alias HawkEx.Audit
 
@@ -8,7 +8,7 @@ defmodule HawkExDashboard.OverviewLive do
   def mount(_params, _session, socket) do
     {:ok,
      socket
-     |> assign(:page_title, "HAWK_EX Overview")
+     |> assign(:page_title, "Overview")
      |> assign(:current_path, "/hawk_ex")
      |> assign(:recent_events, Audit.recent(limit: 10))}
   end
@@ -16,22 +16,7 @@ defmodule HawkExDashboard.OverviewLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="drawer lg:drawer-open">
-      <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
-
-      <div class="drawer-content flex flex-col">
-        <div class="navbar bg-base-100 shadow-sm lg:hidden">
-          <label for="drawer-toggle" class="btn btn-ghost">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-              fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </label>
-          <span class="text-lg font-bold">HAWK_EX</span>
-        </div>
-
-        <main class="p-6">
+    <Layouts.app current_path={@current_path}>
           <h1 class="text-2xl font-bold mb-6">Overview</h1>
 
           <div class="stats shadow w-full mb-6">
@@ -77,14 +62,9 @@ defmodule HawkExDashboard.OverviewLive do
               </div>
             </div>
           </div>
-        </main>
-      </div>
 
-      <div class="drawer-side">
-        <label for="drawer-toggle" class="drawer-overlay"></label>
-        <.sidebar current_path={@current_path} />
-      </div>
-    </div>
+
+    </Layouts.app>
     """
   end
 
