@@ -50,6 +50,9 @@ defmodule HawkExDashboard.Pagination do
     """
   end
 
+  defp page_window(nil, _), do: []
+  defp page_window(_, nil), do: []
+
   defp page_window(current, total) do
     start = max(1, current - 2)
     stop = min(total, start + 4)

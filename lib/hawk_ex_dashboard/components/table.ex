@@ -19,9 +19,9 @@ defmodule HawkExDashboard.Table do
   attr(:stream, :any, default: nil)
   attr(:row_id, :any, default: nil)
 
-  attr(:page, :integer, required: true)
-  attr(:total_pages, :integer, required: true)
-  attr(:total_count, :integer, required: true)
+  attr(:page, :integer, default: nil)
+  attr(:total_pages, :integer, default: nil)
+  attr(:total_count, :integer, default: nil)
 
   attr(:search, :string, default: "")
   attr(:search_placeholder, :string, default: "Search…")
@@ -100,6 +100,7 @@ defmodule HawkExDashboard.Table do
         </div>
 
         <.pagination page={@page}
+          :if={is_integer(@page) && is_integer(@total_pages) && @total_pages > 1}
           total_pages={@total_pages}
           loading={@loading}
           error={@error}

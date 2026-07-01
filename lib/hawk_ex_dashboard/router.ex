@@ -74,6 +74,8 @@ defmodule HawkExDashboard.Router do
           )
 
           live("/usage", HawkExDashboard.UsageLive, :index, as: :hawk_ex_usage)
+
+          live("/events", HawkExDashboard.EventsLive, :index, as: :hawk_ex_events)
         end
       end
     end
