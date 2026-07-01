@@ -39,8 +39,7 @@ defmodule HawkExDashboard.EntitlementsLive do
           <table class="table">
             <thead>
               <tr>
-                <%!-- Frozen first column header --%>
-                <th class="bg-base-200 w-48 sticky left-0 z-10">Feature</th>
+                <th class="bg-base-200 w-48 sticky left-0 z-5">Feature</th>
                 <th :for={plan <- @plans} class="text-center">
                   <div class="font-display text-base">{plan.display_name}</div>
                   <div :if={plan.trial_days > 0} class="text-xs font-normal opacity-60">
@@ -51,14 +50,12 @@ defmodule HawkExDashboard.EntitlementsLive do
             </thead>
             <tbody>
               <tr :for={feature <- @features}>
-                <%!-- Feature name — sticky first column --%>
-                <td class="bg-base-100 sticky left-0 z-10 border-r border-base-300">
+                <td class="bg-base-100 sticky left-0 z-5 border-r border-base-300">
                   <div class="font-medium text-sm">{format_key(feature.key)}</div>
                   <div :if={feature.description} class="text-xs text-base-content/50">
                     {feature.description}
                   </div>
                 </td>
-                <%!-- Value per plan --%>
                 <td :for={plan <- @plans} class="text-center">
                   <.entitlement_cell
                     value={Map.get(@matrix, {plan.id, feature.key})}
