@@ -14,6 +14,8 @@ defmodule HawkExDashboard.CsvLive do
      |> assign(:current_path, "/hawk_ex/csv")
      |> assign(:total_pages, 1)
      |> assign(:total_count, 0)
+     |> assign(:sort_field, "inserted_at")
+     |> assign(:sort_dir, "desc")
      |> assign(:loading, true)
      |> assign(:error, nil)
      |> stream(:exports, [])}
@@ -25,8 +27,15 @@ defmodule HawkExDashboard.CsvLive do
   end
 
   defp load_data(socket, page, search) do
+    order_by = current_order_by(socket)
+
     start_async(socket, :load_exports, fn ->
-      CSV.recent_exports(page: page, per_page: 20, search: search)
+      CSV.recent_exports(
+        page: page,
+        per_page: 20,
+        search: search,
+        order_by: order_by
+      )
     end)
   end
 
@@ -59,6 +68,8 @@ defmodule HawkExDashboard.CsvLive do
         page={@page}
         total_pages={@total_pages}
         total_count={@total_count}
+        sort_field={@sort_field}
+        sort_dir={@sort_dir}
         search={@search}
         search_placeholder="Search by export type…"
         loading={@loading}
@@ -87,7 +98,7 @@ defmodule HawkExDashboard.CsvLive do
             {export.error_message || "—"}
           </span>
         </:col>
-        <:col :let={export} label="Created">
+        <:col :let={export} label="Created" sortable={true} field="inserted_at">
           <span class="text-sm opacity-70">{format_dt(export.inserted_at)}</span>
         </:col>
         <:col :let={export} label="Download">

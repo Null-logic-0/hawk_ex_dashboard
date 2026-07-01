@@ -56,17 +56,23 @@ defmodule HawkExDashboard.PaginatedSearch do
 
   defmacro __using__(opts) do
     base_path = Keyword.fetch!(opts, :path)
+    default_sort = Keyword.get(opts, :default_sort, "inserted_at")
+    default_dir = Keyword.get(opts, :default_dir, "desc")
 
     quote do
       import HawkExDashboard.PaginatedSearch,
         only: [
           parse_page: 1,
+          parse_dir: 1,
           build_path: 3,
           paginated_search_params: 3,
-          handle_paginated_result: 4
+          handle_paginated_result: 4,
+          current_order_by: 1
         ]
 
       @paginated_search_path unquote(base_path)
+      @paginated_default_sort unquote(default_sort)
+      @paginated_default_dir unquote(default_dir)
 
       @impl true
       def handle_event("table_page", %{"page" => page}, socket) do
@@ -80,6 +86,28 @@ defmodule HawkExDashboard.PaginatedSearch do
         {:noreply,
          Phoenix.LiveView.push_patch(socket,
            to: build_path(socket, @paginated_search_path, page: 1, search: search)
+         )}
+      end
+
+      def handle_event("table_sort", %{"field" => field}, socket) do
+        current_field = socket.assigns[:sort_field] || @paginated_default_sort
+        current_dir = socket.assigns[:sort_dir] || @paginated_default_dir
+
+        new_dir =
+          if field == current_field do
+            if current_dir == "desc", do: "asc", else: "desc"
+          else
+            "desc"
+          end
+
+        {:noreply,
+         Phoenix.LiveView.push_patch(socket,
+           to:
+             build_path(socket, @paginated_search_path,
+               page: 1,
+               sort: field,
+               dir: new_dir
+             )
          )}
       end
 
@@ -106,34 +134,43 @@ defmodule HawkExDashboard.PaginatedSearch do
   def build_path(socket, base_path, opts) do
     page = Keyword.get(opts, :page, socket.assigns[:page] || 1)
     search = Keyword.get(opts, :search, socket.assigns[:search] || "")
+    sort_field = Keyword.get(opts, :sort, socket.assigns[:sort_field] || "inserted_at")
+    sort_dir = Keyword.get(opts, :dir, socket.assigns[:sort_dir] || "desc")
 
     query =
       %{}
       |> maybe_put("page", page, 1)
       |> maybe_put("search", search, "")
+      |> maybe_put("sort", sort_field, "inserted_at")
+      |> maybe_put("dir", sort_dir, "desc")
       |> URI.encode_query()
 
     if query == "", do: base_path, else: "#{base_path}?#{query}"
   end
-
-  defp maybe_put(map, _key, value, default) when value in [default, nil], do: map
-  defp maybe_put(map, key, value, _default), do: Map.put(map, key, to_string(value))
 
   @doc """
   Call from `handle_params/3`. Parses page/search from URL params,
   assigns them, and calls the given `load_fun.(socket, page, search)`
   to kick off data loading (typically an async load).
   """
-  def paginated_search_params(socket, params, load_fun) do
+  def paginated_search_params(socket, params, load_fun, opts \\ []) do
     page = parse_page(params["page"])
     search = params["search"] || ""
+    sort_field = params["sort"] || Keyword.get(opts, :default_sort, "inserted_at")
+    sort_dir = parse_dir(params["dir"])
 
     socket
     |> Phoenix.Component.assign(:page, page)
     |> Phoenix.Component.assign(:search, search)
+    |> Phoenix.Component.assign(:sort_field, sort_field)
+    |> Phoenix.Component.assign(:sort_dir, sort_dir)
     |> Phoenix.Component.assign(:loading, true)
     |> then(&load_fun.(&1, page, search))
   end
+
+  def parse_dir("asc"), do: "asc"
+  def parse_dir("desc"), do: "desc"
+  def parse_dir(_), do: "desc"
 
   @doc """
   Call from the success branch of `handle_async/3`. Given the loaded
@@ -153,4 +190,33 @@ defmodule HawkExDashboard.PaginatedSearch do
       {:noreply, assign_fun.(socket, page_result)}
     end
   end
+
+  @doc """
+  Builds an Ecto-compatible `order_by` keyword from the socket's
+  current sort assigns. Returns `[desc: :inserted_at]` as default.
+
+  Use inside `load_data/3` to avoid repeating this pattern in every
+  LiveView:
+
+      defp load_data(socket, page, search) do
+        start_async(socket, :load_recent, fn ->
+          MyContext.list(
+            page: page,
+            per_page: 20,
+            search: search,
+            order_by: current_order_by(socket)
+          )
+        end)
+      end
+  """
+  def current_order_by(socket) do
+    field = socket.assigns[:sort_field] || "inserted_at"
+    dir = socket.assigns[:sort_dir] || "desc"
+    [{String.to_atom(dir), String.to_atom(field)}]
+  end
+
+  # --- Private Helpers ---
+  defp maybe_put(map, _key, nil, _default), do: map
+  defp maybe_put(map, _key, value, default) when value == default, do: map
+  defp maybe_put(map, key, value, _default), do: Map.put(map, key, to_string(value))
 end

@@ -19,6 +19,8 @@ defmodule HawkExDashboard.BillingLive do
      |> assign(:plans, plans)
      |> assign(:total_pages, 1)
      |> assign(:total_count, 0)
+     |> assign(:sort_field, "inserted_at")
+     |> assign(:sort_dir, "desc")
      |> assign(:loading, true)
      |> assign(:error, nil)
      |> stream(:subscriptions, [])}
@@ -30,8 +32,15 @@ defmodule HawkExDashboard.BillingLive do
   end
 
   defp load_data(socket, page, search) do
+    order_by = current_order_by(socket)
+
     start_async(socket, :load_subscriptions, fn ->
-      Billing.recent_subscriptions(page: page, per_page: 20, search: search)
+      Billing.recent_subscriptions(
+        page: page,
+        per_page: 20,
+        search: search,
+        order_by: order_by
+      )
     end)
   end
 
@@ -73,6 +82,8 @@ defmodule HawkExDashboard.BillingLive do
           page={@page}
           total_pages={@total_pages}
           total_count={@total_count}
+          sort_field={@sort_field}
+          sort_dir={@sort_dir}
           search={@search}
           search_placeholder="Search by account ID…"
           loading={@loading}
@@ -80,7 +91,7 @@ defmodule HawkExDashboard.BillingLive do
           empty_title="No subscriptions yet"
           empty_message="Subscriptions will appear here once accounts subscribe."
         >
-          <:col :let={sub} label="Account">
+          <:col :let={sub} label="Action" >
             <span class="font-mono-data text-xs">{sub.account_id}</span>
           </:col>
           <:col :let={sub} label="Plan">
@@ -95,7 +106,7 @@ defmodule HawkExDashboard.BillingLive do
               {sub.status}
             </span>
           </:col>
-          <:col :let={sub} label="Since">
+          <:col :let={sub} label="Since" sortable={true} field="inserted_at">
             <span class="text-sm opacity-70">{format_dt(sub.inserted_at)}</span>
           </:col>
         </.table>

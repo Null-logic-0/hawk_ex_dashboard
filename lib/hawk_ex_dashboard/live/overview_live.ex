@@ -1,7 +1,9 @@
 defmodule HawkExDashboard.OverviewLive do
   use Phoenix.LiveView
   use HawkExDashboard.HTML
-  use HawkExDashboard.PaginatedSearch, path: "/hawk_ex"
+
+  @path "/hawk_ex"
+  use HawkExDashboard.PaginatedSearch, path: @path
   import HawkExDashboard.{Table, PageHeading}
 
   alias HawkEx.Audit
@@ -11,7 +13,9 @@ defmodule HawkExDashboard.OverviewLive do
     {:ok,
      socket
      |> assign(:page_title, "Overview")
-     |> assign(:current_path, "/hawk_ex")
+     |> assign(:current_path, @path)
+     |> assign(:sort_field, "inserted_at")
+     |> assign(:sort_dir, "desc")
      |> assign(:total_pages, 1)
      |> assign(:total_count, 0)
      |> assign(:loading, true)
@@ -25,14 +29,21 @@ defmodule HawkExDashboard.OverviewLive do
   end
 
   defp load_data(socket, page, search) do
+    order_by = current_order_by(socket)
+
     start_async(socket, :load_recent, fn ->
-      Audit.recent(page: page, per_page: 20, search: search)
+      Audit.recent(
+        page: page,
+        per_page: 20,
+        search: search,
+        order_by: order_by
+      )
     end)
   end
 
   @impl true
   def handle_async(:load_recent, {:ok, page_result}, socket) do
-    handle_paginated_result(socket, "/hawk_ex", page_result, fn socket, result ->
+    handle_paginated_result(socket, @path, page_result, fn socket, result ->
       socket
       |> assign(:total_pages, result.total_pages)
       |> assign(:total_count, result.total_count)
@@ -59,6 +70,8 @@ defmodule HawkExDashboard.OverviewLive do
         page={@page}
         total_pages={@total_pages}
         total_count={@total_count}
+        sort_field={@sort_field}
+        sort_dir={@sort_dir}
         search={@search}
         search_placeholder="Search by action…"
         loading={@loading}
@@ -66,8 +79,8 @@ defmodule HawkExDashboard.OverviewLive do
         empty_title="No activity yet"
         empty_message="Once your app starts emitting events, they'll show up here."
       >
-        <:col :let={log} label="Action">
-          <span class="badge badge-primary badge-sm">{log.action}</span>
+        <:col :let={log} label="Action" sortable={true} field="action" >
+          <span class="badge badge-primary badge-sm cursor-pointer">{log.action}</span>
         </:col>
         <:col :let={log} label="Actor">
           <span class="font-mono-data text-xs">{log.actor_id || "system"}</span>
