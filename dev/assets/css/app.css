@@ -1,7 +1,8 @@
 @import "tailwindcss";
 @source "../css";
 @source "../js";
-
+@source "../../../lib";
+@source "../../";
 @plugin "daisyui";
 
 @plugin "daisyui/theme" {

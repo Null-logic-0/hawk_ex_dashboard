@@ -68,6 +68,10 @@ defmodule HawkExDashboard.Router do
           live("/audit", HawkExDashboard.AuditLive, :index, as: :hawk_ex_audit)
           live("/csv", HawkExDashboard.CsvLive, :index, as: :hawk_ex_csv)
           live("/configuration", HawkExDashboard.ConfigLive, :index, as: :hawk_ex_configuration)
+
+          live("/entitlements", HawkExDashboard.EntitlementsLive, :index,
+            as: :hawk_ex_entitlements
+          )
         end
       end
     end
