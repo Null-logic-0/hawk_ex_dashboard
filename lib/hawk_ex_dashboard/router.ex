@@ -72,6 +72,8 @@ defmodule HawkExDashboard.Router do
           live("/entitlements", HawkExDashboard.EntitlementsLive, :index,
             as: :hawk_ex_entitlements
           )
+
+          live("/usage", HawkExDashboard.UsageLive, :index, as: :hawk_ex_usage)
         end
       end
     end

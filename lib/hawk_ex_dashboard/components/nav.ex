@@ -18,6 +18,7 @@ defmodule HawkExDashboard.Nav do
       <.nav_item path="/hawk_ex/csv" label="CSV Exports" current={@current_path} />
       <.nav_item path="/hawk_ex/configuration" label="Configuration" current={@current_path} />
       <.nav_item path="/hawk_ex/entitlements" label="Entitlements" current={@current_path} />
+      <.nav_item path="/hawk_ex/usage" label="Usage" current={@current_path} />
     </ul>
     """
   end

@@ -123,22 +123,4 @@ defmodule HawkExDashboard.EntitlementsLive do
     |> Enum.map(&String.capitalize/1)
     |> Enum.join(" ")
   end
-
-  defp format_number(value) do
-    case Integer.parse(value) do
-      {n, ""} ->
-        n
-        |> Integer.to_string()
-        |> String.graphemes()
-        |> Enum.reverse()
-        |> Enum.chunk_every(3)
-        |> Enum.join(",")
-        |> String.graphemes()
-        |> Enum.reverse()
-        |> Enum.join()
-
-      _ ->
-        value
-    end
-  end
 end

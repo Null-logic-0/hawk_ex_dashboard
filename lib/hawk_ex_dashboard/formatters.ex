@@ -9,4 +9,23 @@ defmodule HawkExDashboard.Formatters do
   """
   def format_dt(nil), do: "—"
   def format_dt(%DateTime{} = dt), do: Calendar.strftime(dt, "%b %d %H:%M")
+
+  @doc "Formats an integer string with thousands separators."
+  def format_number(value) when is_binary(value) do
+    case Integer.parse(value) do
+      {n, ""} ->
+        n
+        |> Integer.to_string()
+        |> String.graphemes()
+        |> Enum.reverse()
+        |> Enum.chunk_every(3)
+        |> Enum.join(",")
+        |> String.graphemes()
+        |> Enum.reverse()
+        |> Enum.join()
+
+      _ ->
+        value
+    end
+  end
 end
