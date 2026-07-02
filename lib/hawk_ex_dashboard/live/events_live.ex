@@ -162,10 +162,10 @@ defmodule HawkExDashboard.EventsLive do
           >
             JSON
           </button>
-          <pre
-            id={"payload-#{event.id}"}
-            class="hidden text-xs bg-base-200 rounded p-2 mt-1 max-w-xs overflow-x-auto"
-          >{event.payload_json}</pre>
+          <div id={"payload-#{event.id}"} class="hidden mt-2">
+              <.json_viewer id={"json-#{event.id}"} data={Jason.decode!(event.payload_json)} />
+          </div>
+
         </:col>
       </.table>
     </Layouts.app>

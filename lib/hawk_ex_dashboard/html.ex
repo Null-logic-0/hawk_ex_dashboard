@@ -12,6 +12,8 @@ defmodule HawkExDashboard.HTML do
 
       import HawkExDashboard.Formatters
 
+      import HawkExDashboard.JSONViewer
+
       alias HawkExDashboard.Layouts
 
       alias Phoenix.LiveView.JS

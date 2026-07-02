@@ -19,5 +19,29 @@ liveSocket.getSocket().onClose(() => {
   })
 })
 
+window.addEventListener("hawk_ex:copy", (e) => {
+  const text = e.detail.text || e.target.innerText
+
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = e.target.closest("button") ||
+      document.querySelector(`[phx-click*="hawk_ex:copy"]`)
+
+    if (btn) {
+      const orig = btn.innerHTML
+      btn.innerHTML = "✓"
+      setTimeout(() => { btn.innerHTML = orig }, 1500)
+    }
+  }).catch(() => {
+    const ta = document.createElement("textarea")
+    ta.value = text
+    ta.style.position = "fixed"
+    ta.style.opacity = "0"
+    document.body.appendChild(ta)
+    ta.select()
+    document.execCommand("copy")
+    document.body.removeChild(ta)
+  })
+})
+
 liveSocket.connect()
 window.liveSocket = liveSocket
