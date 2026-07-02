@@ -76,18 +76,3 @@ body {
     font-family: var(--font-mono);
     font-weight: 400;
 }
-
-.hawk-cut {
-    position: relative;
-    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
-}
-
-.hawk-cut::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: var(--color-primary);
-}

@@ -29,13 +29,20 @@ defmodule HawkExDashboard.Nav do
   attr(:current, :string, required: true)
 
   defp nav_item(assigns) do
+    active = assigns.current == assigns.path
+    assigns = assign(assigns, :active, active)
+
     ~H"""
     <li class="text-sm">
       <.link
         navigate={@path}
-        class={if @current == @path, do: "bg-base-200 text-primary font-semibold", else: "font-medium"}
+        class={[
+             "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+             @active && "bg-primary text-primary-content",
+             !@active && "text-base-content/70 hover:bg-base-200 hover:text-base-content"
+           ]}
       >
-        <%= @label %>
+        {@label}
       </.link>
     </li>
     """
