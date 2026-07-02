@@ -8,6 +8,8 @@ defmodule HawkExDashboard.UsageLive do
 
   import Ecto.Query
 
+  @path "/hawk_ex/usage"
+
   @impl true
   def mount(_params, _session, socket) do
     accounts = load_accounts()
@@ -15,7 +17,7 @@ defmodule HawkExDashboard.UsageLive do
     {:ok,
      socket
      |> assign(:page_title, "Usage")
-     |> assign(:current_path, "/hawk_ex/usage")
+     |> assign(:current_path, @path)
      |> assign(:accounts, accounts)
      |> assign(:selected_id, nil)
      |> assign(:usage, nil)

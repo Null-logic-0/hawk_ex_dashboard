@@ -5,6 +5,8 @@ defmodule HawkExDashboard.EntitlementsLive do
 
   alias HawkEx.Entitlements
 
+  @path "/hawk_ex/entitlements"
+
   @impl true
   def mount(_params, _session, socket) do
     data = Entitlements.matrix()
@@ -12,7 +14,7 @@ defmodule HawkExDashboard.EntitlementsLive do
     {:ok,
      socket
      |> assign(:page_title, "Entitlements")
-     |> assign(:current_path, "/hawk_ex/entitlements")
+     |> assign(:current_path, @path)
      |> assign(:plans, data.plans)
      |> assign(:features, data.features)
      |> assign(:matrix, data.matrix)}

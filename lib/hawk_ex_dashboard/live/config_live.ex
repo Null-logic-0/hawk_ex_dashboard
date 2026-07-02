@@ -5,12 +5,14 @@ defmodule HawkExDashboard.ConfigLive do
 
   alias HawkEx.Config
 
+  @path "/hawk_ex/configuration"
+
   @impl true
   def mount(_params, _session, socket) do
     socket =
       socket
       |> assign(:page_title, "Configuration")
-      |> assign(:current_path, "/hawk_ex/configuration")
+      |> assign(:current_path, @path)
       |> assign(:config, Config.snapshot())
 
     {:ok, socket}

@@ -7,6 +7,7 @@ defmodule HawkExDashboard.EventsLive do
 
   @max_events 100
   @buffer_limit 99
+  @path "/hawk_ex/events"
 
   @impl true
   def mount(_params, _session, socket) do
@@ -15,7 +16,7 @@ defmodule HawkExDashboard.EventsLive do
     socket =
       socket
       |> assign(:page_title, "Events")
-      |> assign(:current_path, "/hawk_ex/events")
+      |> assign(:current_path, @path)
       |> assign(:paused, false)
       |> assign(:buffer_count, 0)
       |> assign(:filter_type, "all")

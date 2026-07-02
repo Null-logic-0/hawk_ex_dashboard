@@ -1,7 +1,9 @@
 defmodule HawkExDashboard.CsvLive do
   use Phoenix.LiveView
   use HawkExDashboard.HTML
-  use HawkExDashboard.PaginatedSearch, path: "/hawk_ex/csv"
+
+  @path "/hawk_ex/csv"
+  use HawkExDashboard.PaginatedSearch, path: @path
   import HawkExDashboard.{Table, PageHeading}
 
   alias HawkEx.CSV
@@ -11,7 +13,7 @@ defmodule HawkExDashboard.CsvLive do
     socket =
       socket
       |> assign(:page_title, "CSV Exports")
-      |> assign(:current_path, "/hawk_ex/csv")
+      |> assign(:current_path, @path)
       |> assign(:total_pages, 1)
       |> assign(:total_count, 0)
       |> assign(:sort_field, "inserted_at")
@@ -44,7 +46,7 @@ defmodule HawkExDashboard.CsvLive do
 
   @impl true
   def handle_async(:load_exports, {:ok, export_page}, socket) do
-    handle_paginated_result(socket, "/hawk_ex/csv", export_page, fn socket, result ->
+    handle_paginated_result(socket, @path, export_page, fn socket, result ->
       socket
       |> assign(:total_pages, result.total_pages)
       |> assign(:total_count, result.total_count)
@@ -107,7 +109,7 @@ defmodule HawkExDashboard.CsvLive do
         </:col>
         <:col :let={export} label="Download">
           <a :if={export.status == "completed"}
-            href={"/hawk_ex/csv/#{export.id}/download"}
+            href={@path <> "/#{export.id}/download"}
             class="btn btn-ghost btn-xs"
             aria-label={"Download #{export.export_type}.csv"}>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
