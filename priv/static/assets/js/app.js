@@ -2112,16 +2112,16 @@
       TEMPLATES = "p";
       STREAM = "stream";
       EntryUploader = class {
-        constructor(entry, config, liveSocket) {
+        constructor(entry, config, liveSocket2) {
           const { chunk_size, chunk_timeout } = config;
-          this.liveSocket = liveSocket;
+          this.liveSocket = liveSocket2;
           this.entry = entry;
           this.offset = 0;
           this.chunkSize = chunk_size;
           this.chunkTimeout = chunk_timeout;
           this.chunkTimer = null;
           this.errored = false;
-          this.uploadChannel = liveSocket.channel(`lvu:${entry.ref}`, {
+          this.uploadChannel = liveSocket2.channel(`lvu:${entry.ref}`, {
             token: entry.metadata()
           });
         }
@@ -2228,9 +2228,9 @@
         return true;
       };
       maybe = (el, callback) => el && callback(el);
-      channelUploader = function(entries, onError, resp, liveSocket) {
+      channelUploader = function(entries, onError, resp, liveSocket2) {
         entries.forEach((entry) => {
-          const entryUploader = new EntryUploader(entry, resp.config, liveSocket);
+          const entryUploader = new EntryUploader(entry, resp.config, liveSocket2);
           entryUploader.upload();
         });
       };
@@ -3154,7 +3154,7 @@ removing illegal node: "${("outerHTML" in childNode && childNode.outerHTML || ch
         entries() {
           return this._entries;
         }
-        initAdapterUpload(resp, onError, liveSocket) {
+        initAdapterUpload(resp, onError, liveSocket2) {
           this._entries = this._entries.map((entry) => {
             if (entry.isCancelled()) {
               this.numEntriesInProgress--;
@@ -3176,14 +3176,14 @@ removing illegal node: "${("outerHTML" in childNode && childNode.outerHTML || ch
             if (!entry.meta) {
               return acc;
             }
-            const { name, callback } = entry.uploader(liveSocket.uploaders);
+            const { name, callback } = entry.uploader(liveSocket2.uploaders);
             acc[name] = acc[name] || { callback, entries: [] };
             acc[name].entries.push(entry);
             return acc;
           }, {});
           for (const name in groupedEntries) {
             const { callback, entries } = groupedEntries[name];
-            callback(entries, onError, resp, liveSocket);
+            callback(entries, onError, resp, liveSocket2);
           }
         }
       };
@@ -3849,7 +3849,7 @@ removing illegal node: "${("outerHTML" in childNode && childNode.outerHTML || ch
           );
         }
         perform(isJoinPatch) {
-          const { view, liveSocket, html, container } = this;
+          const { view, liveSocket: liveSocket2, html, container } = this;
           let targetContainer = this.targetContainer;
           if (this.targetCID) {
             const closestLock = targetContainer.closest(`[${PHX_REF_LOCK}]`);
@@ -3864,12 +3864,12 @@ removing illegal node: "${("outerHTML" in childNode && childNode.outerHTML || ch
               }
             }
           }
-          const focused = liveSocket.getActiveElement();
+          const focused = liveSocket2.getActiveElement();
           const { selectionStart, selectionEnd } = focused && dom_default.hasSelectionRange(focused) ? focused : {};
-          const phxUpdate = liveSocket.binding(PHX_UPDATE);
-          const phxViewportTop = liveSocket.binding(PHX_VIEWPORT_TOP);
-          const phxViewportBottom = liveSocket.binding(PHX_VIEWPORT_BOTTOM);
-          const phxTriggerExternal = liveSocket.binding(PHX_TRIGGER_ACTION);
+          const phxUpdate = liveSocket2.binding(PHX_UPDATE);
+          const phxViewportTop = liveSocket2.binding(PHX_VIEWPORT_TOP);
+          const phxViewportBottom = liveSocket2.binding(PHX_VIEWPORT_BOTTOM);
+          const phxTriggerExternal = liveSocket2.binding(PHX_TRIGGER_ACTION);
           const added = [];
           const updates = [];
           const appendPrependUpdates = [];
@@ -4102,7 +4102,7 @@ removing illegal node: "${("outerHTML" in childNode && childNode.outerHTML || ch
             morphdom_esm_default(targetContainer2, source, morphCallbacks);
           };
           this.trackBeforeUpdated(container, container);
-          liveSocket.time("morphdom", () => {
+          liveSocket2.time("morphdom", () => {
             this.streams.forEach(([ref, inserts, deleteIds, reset]) => {
               inserts.forEach(([key, streamAt, limit, updateOnly]) => {
                 this.streamInserts[key] = { ref, streamAt, limit, reset, updateOnly };
@@ -4149,7 +4149,7 @@ removing illegal node: "${("outerHTML" in childNode && childNode.outerHTML || ch
               }
             });
           });
-          if (liveSocket.isDebugEnabled()) {
+          if (liveSocket2.isDebugEnabled()) {
             detectDuplicateIds();
             detectInvalidStreamInserts(this.streamInserts);
             Array.from(document.querySelectorAll("input[name=id]")).forEach(
@@ -4164,11 +4164,11 @@ removing illegal node: "${("outerHTML" in childNode && childNode.outerHTML || ch
             );
           }
           if (appendPrependUpdates.length > 0) {
-            liveSocket.time("post-morph append/prepend restoration", () => {
+            liveSocket2.time("post-morph append/prepend restoration", () => {
               appendPrependUpdates.forEach((update) => update.perform());
             });
           }
-          liveSocket.silenceEvents(
+          liveSocket2.silenceEvents(
             () => dom_default.restoreFocus(focused, selectionStart, selectionEnd)
           );
           dom_default.dispatchEvent(document, "phx:update");
@@ -4176,7 +4176,7 @@ removing illegal node: "${("outerHTML" in childNode && childNode.outerHTML || ch
           updates.forEach((el) => this.trackAfterUpdated(el));
           this.transitionPendingRemoves();
           if (externalFormTriggered) {
-            liveSocket.unload();
+            liveSocket2.unload();
             const submitter = dom_default.private(externalFormTriggered, "submitter");
             if (submitter && submitter.name && targetContainer.contains(submitter)) {
               const input = document.createElement("input");
@@ -4318,13 +4318,13 @@ removing illegal node: "${("outerHTML" in childNode && childNode.outerHTML || ch
           }
         }
         transitionPendingRemoves() {
-          const { pendingRemoves, liveSocket } = this;
+          const { pendingRemoves, liveSocket: liveSocket2 } = this;
           if (pendingRemoves.length > 0) {
-            liveSocket.transitionRemoves(pendingRemoves, this.view, () => {
+            liveSocket2.transitionRemoves(pendingRemoves, this.view, () => {
               pendingRemoves.forEach((el) => {
                 const child = dom_default.firstPhxChild(el);
                 if (child) {
-                  liveSocket.destroyViewByEl(child);
+                  liveSocket2.destroyViewByEl(child);
                 }
                 el.remove();
               });
@@ -5298,7 +5298,7 @@ removing illegal node: "${("outerHTML" in childNode && childNode.outerHTML || ch
         isToggledOut(el, outClasses) {
           return !this.isVisible(el) || this.hasAllClasses(el, outClasses);
         },
-        filterToEls(liveSocket, sourceEl, { to }) {
+        filterToEls(liveSocket2, sourceEl, { to }) {
           const defaultQuery = () => {
             if (typeof to === "string") {
               return document.querySelectorAll(to);
@@ -5309,7 +5309,7 @@ removing illegal node: "${("outerHTML" in childNode && childNode.outerHTML || ch
               return sourceEl.querySelectorAll(to.inner);
             }
           };
-          return to ? liveSocket.jsQuerySelectorAll(sourceEl, to, defaultQuery) : [sourceEl];
+          return to ? liveSocket2.jsQuerySelectorAll(sourceEl, to, defaultQuery) : [sourceEl];
         },
         defaultDisplay(el) {
           return { tr: "table-row", td: "table-cell" }[el.tagName.toLowerCase()] || "block";
@@ -5326,13 +5326,13 @@ removing illegal node: "${("outerHTML" in childNode && childNode.outerHTML || ch
         }
       };
       js_default = JS;
-      js_commands_default = (liveSocket, eventType) => {
+      js_commands_default = (liveSocket2, eventType) => {
         return {
           exec(el, encodedJS) {
-            liveSocket.execJS(el, encodedJS, eventType);
+            liveSocket2.execJS(el, encodedJS, eventType);
           },
           show(el, opts = {}) {
-            const owner = liveSocket.owner(el);
+            const owner = liveSocket2.owner(el);
             js_default.show(
               eventType,
               owner,
@@ -5344,7 +5344,7 @@ removing illegal node: "${("outerHTML" in childNode && childNode.outerHTML || ch
             );
           },
           hide(el, opts = {}) {
-            const owner = liveSocket.owner(el);
+            const owner = liveSocket2.owner(el);
             js_default.hide(
               eventType,
               owner,
@@ -5356,7 +5356,7 @@ removing illegal node: "${("outerHTML" in childNode && childNode.outerHTML || ch
             );
           },
           toggle(el, opts = {}) {
-            const owner = liveSocket.owner(el);
+            const owner = liveSocket2.owner(el);
             const inTransition = js_default.transitionClasses(opts.in);
             const outTransition = js_default.transitionClasses(opts.out);
             js_default.toggle(
@@ -5372,7 +5372,7 @@ removing illegal node: "${("outerHTML" in childNode && childNode.outerHTML || ch
           },
           addClass(el, names, opts = {}) {
             const classNames = Array.isArray(names) ? names : names.split(" ");
-            const owner = liveSocket.owner(el);
+            const owner = liveSocket2.owner(el);
             js_default.addOrRemoveClasses(
               el,
               classNames,
@@ -5385,7 +5385,7 @@ removing illegal node: "${("outerHTML" in childNode && childNode.outerHTML || ch
           },
           removeClass(el, names, opts = {}) {
             const classNames = Array.isArray(names) ? names : names.split(" ");
-            const owner = liveSocket.owner(el);
+            const owner = liveSocket2.owner(el);
             js_default.addOrRemoveClasses(
               el,
               [],
@@ -5398,7 +5398,7 @@ removing illegal node: "${("outerHTML" in childNode && childNode.outerHTML || ch
           },
           toggleClass(el, names, opts = {}) {
             const classNames = Array.isArray(names) ? names : names.split(" ");
-            const owner = liveSocket.owner(el);
+            const owner = liveSocket2.owner(el);
             js_default.toggleClasses(
               el,
               classNames,
@@ -5409,7 +5409,7 @@ removing illegal node: "${("outerHTML" in childNode && childNode.outerHTML || ch
             );
           },
           transition(el, transition, opts = {}) {
-            const owner = liveSocket.owner(el);
+            const owner = liveSocket2.owner(el);
             js_default.addOrRemoveClasses(
               el,
               [],
@@ -5430,7 +5430,7 @@ removing illegal node: "${("outerHTML" in childNode && childNode.outerHTML || ch
             js_default.toggleAttr(el, attr, val1, val2);
           },
           push(el, type, opts = {}) {
-            liveSocket.withinOwners(el, (view) => {
+            liveSocket2.withinOwners(el, (view) => {
               const data = opts.value || {};
               delete opts.value;
               let e = new CustomEvent("phx:exec", { detail: { sourceElement: el } });
@@ -5440,7 +5440,7 @@ removing illegal node: "${("outerHTML" in childNode && childNode.outerHTML || ch
           navigate(href, opts = {}) {
             ensureSameOrigin(href, "navigate");
             const customEvent = new CustomEvent("phx:exec");
-            liveSocket.historyRedirect(
+            liveSocket2.historyRedirect(
               customEvent,
               href,
               opts.replace ? "replace" : "push",
@@ -5451,7 +5451,7 @@ removing illegal node: "${("outerHTML" in childNode && childNode.outerHTML || ch
           patch(href, opts = {}) {
             ensureSameOrigin(href, "patch");
             const customEvent = new CustomEvent("phx:exec");
-            liveSocket.pushHistoryPatch(
+            liveSocket2.pushHistoryPatch(
               customEvent,
               href,
               opts.replace ? "replace" : "push",
@@ -5707,10 +5707,10 @@ removing illegal node: "${("outerHTML" in childNode && childNode.outerHTML || ch
           const liveViewEl = el.closest(PHX_VIEW_SELECTOR);
           return liveViewEl ? dom_default.private(liveViewEl, "view") : null;
         }
-        constructor(el, liveSocket, parentView, flash = null, liveReferer = null) {
+        constructor(el, liveSocket2, parentView, flash = null, liveReferer = null) {
           this.rendered = null;
           this.isDead = false;
-          this.liveSocket = liveSocket;
+          this.liveSocket = liveSocket2;
           this.flash = flash;
           this.parent = parentView;
           this.root = parentView ? parentView.root : this;
@@ -6170,7 +6170,7 @@ removing illegal node: "${("outerHTML" in childNode && childNode.outerHTML || ch
               parent,
               `[${PHX_VIEW_REF}="${this.id}"][${PHX_COMPONENT}]`
             );
-            const hooks = dom_default.all(
+            const hooks2 = dom_default.all(
               parent,
               `[${this.binding(PHX_HOOK)}], [data-phx-hook]`
             );
@@ -6180,7 +6180,7 @@ removing illegal node: "${("outerHTML" in childNode && childNode.outerHTML || ch
                 destroyedCIDs.push(cid);
               }
             });
-            hooks.concat(parent).forEach((hookEl) => {
+            hooks2.concat(parent).forEach((hookEl) => {
               const hook = this.getHook(hookEl);
               hook && this.destroyHook(hook);
             });
@@ -8773,14 +8773,52 @@ removing illegal node: "${("outerHTML" in childNode && childNode.outerHTML || ch
     }
   });
 
-  // js/app.js
-  var require_app = __commonJS({
-    "js/app.js"() {
-      init_phoenix_html();
+  // js/hooks/command_palette.js
+  var CommandPalette, command_palette_default;
+  var init_command_palette = __esm({
+    "js/hooks/command_palette.js"() {
+      CommandPalette = {
+        mounted() {
+          this._keyHandler = (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+              e.preventDefault();
+              this.pushEventTo(this.el, "open", {});
+              setTimeout(() => {
+                const input = document.getElementById(
+                  this.el.id.replace("-listener", "-input")
+                );
+                if (input) input.focus();
+              }, 50);
+            }
+            if (e.key === "Escape") {
+              this.pushEventTo(this.el, "close", {});
+            }
+          };
+          document.addEventListener("keydown", this._keyHandler);
+        },
+        destroyed() {
+          document.removeEventListener("keydown", this._keyHandler);
+        }
+      };
+      command_palette_default = CommandPalette;
+    }
+  });
+
+  // js/socket.js
+  var hooks, csrfToken, liveSocket;
+  var init_socket = __esm({
+    "js/socket.js"() {
       init_phoenix();
       init_phoenix_live_view_esm();
-      var csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content");
-      var liveSocket = new LiveSocket("/live", Socket, { params: { _csrf_token: csrfToken } });
+      init_command_palette();
+      hooks = {
+        CommandPalette: command_palette_default
+      };
+      csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content");
+      liveSocket = new LiveSocket("/live", Socket, {
+        params: { _csrf_token: csrfToken },
+        hooks
+      });
       liveSocket.getSocket().onOpen(() => {
         document.querySelectorAll("[data-connection-status]").forEach((el) => {
           el.dataset.connectionStatus = "connected";
@@ -8791,30 +8829,48 @@ removing illegal node: "${("outerHTML" in childNode && childNode.outerHTML || ch
           el.dataset.connectionStatus = "disconnected";
         });
       });
-      window.addEventListener("hawk_ex:copy", (e) => {
-        const text = e.detail.text || e.target.innerText;
-        navigator.clipboard.writeText(text).then(() => {
-          const btn = e.target.closest("button") || document.querySelector(`[phx-click*="hawk_ex:copy"]`);
-          if (btn) {
-            const orig = btn.innerHTML;
-            btn.innerHTML = "\u2713";
-            setTimeout(() => {
-              btn.innerHTML = orig;
-            }, 1500);
-          }
-        }).catch(() => {
-          const ta = document.createElement("textarea");
-          ta.value = text;
-          ta.style.position = "fixed";
-          ta.style.opacity = "0";
-          document.body.appendChild(ta);
-          ta.select();
-          document.execCommand("copy");
-          document.body.removeChild(ta);
-        });
-      });
       liveSocket.connect();
       window.liveSocket = liveSocket;
+    }
+  });
+
+  // js/events/copy.js
+  function setupCopy() {
+    window.addEventListener("hawk_ex:copy", (e) => {
+      const text = e.detail?.text || e.target.innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = e.target.closest("button");
+        if (btn) {
+          const orig = btn.innerHTML;
+          btn.innerHTML = "\u2713";
+          setTimeout(() => {
+            btn.innerHTML = orig;
+          }, 1500);
+        }
+      }).catch(() => {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      });
+    });
+  }
+  var init_copy = __esm({
+    "js/events/copy.js"() {
+    }
+  });
+
+  // js/app.js
+  var require_app = __commonJS({
+    "js/app.js"() {
+      init_phoenix_html();
+      init_socket();
+      init_copy();
+      setupCopy();
     }
   });
   require_app();

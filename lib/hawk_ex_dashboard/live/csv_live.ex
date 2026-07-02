@@ -109,7 +109,7 @@ defmodule HawkExDashboard.CsvLive do
         </:col>
         <:col :let={export} label="Download">
           <a :if={export.status == "completed"}
-            href={@path <> "/#{export.id}/download"}
+            href={"/hawk_ex/usage/#{export.id}/download"}
             class="btn btn-ghost btn-xs"
             aria-label={"Download #{export.export_type}.csv"}>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"

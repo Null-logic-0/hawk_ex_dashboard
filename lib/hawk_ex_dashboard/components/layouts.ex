@@ -24,6 +24,12 @@ defmodule HawkExDashboard.Layouts do
       <main class="drawer-content flex flex-col p-8">
           {render_slot(@inner_block)}
       </main>
+
+      <.live_component
+        module={HawkExDashboard.CommandPaletteLive}
+        id="command-palette"
+      />
+
     </div>
     """
   end

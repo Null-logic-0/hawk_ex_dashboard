@@ -64,7 +64,9 @@ defmodule HawkExDashboard.OverviewLive do
   @impl true
   def render(assigns) do
     ~H"""
+
     <Layouts.app current_path={@current_path}>
+
       <.heading title={@page_title} />
 
       <.table
