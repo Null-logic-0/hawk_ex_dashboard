@@ -1,7 +1,7 @@
 defmodule HawkExDashboard.EventsLive do
   use Phoenix.LiveView
   use HawkExDashboard.HTML
-  import HawkExDashboard.{PageHeading, Table}
+  import HawkExDashboard.{PageHeading, Table, JSONViewer}
 
   alias HawkEx.Events
 
