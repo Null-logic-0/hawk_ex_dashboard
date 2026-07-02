@@ -10,17 +10,20 @@ defmodule HawkExDashboard.AuditLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok,
-     socket
-     |> assign(:page_title, "Audit Logs")
-     |> assign(:current_path, @path)
-     |> assign(:sort_field, "inserted_at")
-     |> assign(:sort_dir, "desc")
-     |> assign(:total_pages, 1)
-     |> assign(:total_count, 0)
-     |> assign(:loading, true)
-     |> assign(:error, nil)
-     |> stream(:logs, [])}
+    socket =
+      socket
+      |> assign(:page_title, "Audit Logs")
+      |> assign(:current_path, @path)
+      |> assign(:sort_field, "inserted_at")
+      |> assign(:sort_dir, "desc")
+      |> assign(:total_pages, 1)
+      |> assign(:total_count, 0)
+      |> assign(:loading, true)
+      |> assign(:error, nil)
+      |> assign(:compact, false)
+      |> stream(:logs, [])
+
+    {:ok, socket}
   end
 
   @impl true
@@ -67,6 +70,7 @@ defmodule HawkExDashboard.AuditLive do
       <.table
         id="audit-logs"
         stream={@streams.logs}
+        compact={@compact}
         page={@page}
         total_pages={@total_pages}
         total_count={@total_count}

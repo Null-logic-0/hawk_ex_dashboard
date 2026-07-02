@@ -12,18 +12,21 @@ defmodule HawkExDashboard.BillingLive do
   def mount(_params, _session, socket) do
     plans = Config.repo().all(Plan)
 
-    {:ok,
-     socket
-     |> assign(:page_title, "Billing")
-     |> assign(:current_path, "/hawk_ex/billing")
-     |> assign(:plans, plans)
-     |> assign(:total_pages, 1)
-     |> assign(:total_count, 0)
-     |> assign(:sort_field, "inserted_at")
-     |> assign(:sort_dir, "desc")
-     |> assign(:loading, true)
-     |> assign(:error, nil)
-     |> stream(:subscriptions, [])}
+    socket =
+      socket
+      |> assign(:page_title, "Billing")
+      |> assign(:current_path, "/hawk_ex/billing")
+      |> assign(:plans, plans)
+      |> assign(:total_pages, 1)
+      |> assign(:total_count, 0)
+      |> assign(:sort_field, "inserted_at")
+      |> assign(:sort_dir, "desc")
+      |> assign(:loading, true)
+      |> assign(:error, nil)
+      |> assign(:compact, false)
+      |> stream(:subscriptions, [])
+
+    {:ok, socket}
   end
 
   @impl true
@@ -80,6 +83,7 @@ defmodule HawkExDashboard.BillingLive do
           id="billing-subscriptions"
           stream={@streams.subscriptions}
           page={@page}
+          compact={@compact}
           total_pages={@total_pages}
           total_count={@total_count}
           sort_field={@sort_field}

@@ -8,17 +8,20 @@ defmodule HawkExDashboard.CsvLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok,
-     socket
-     |> assign(:page_title, "CSV Exports")
-     |> assign(:current_path, "/hawk_ex/csv")
-     |> assign(:total_pages, 1)
-     |> assign(:total_count, 0)
-     |> assign(:sort_field, "inserted_at")
-     |> assign(:sort_dir, "desc")
-     |> assign(:loading, true)
-     |> assign(:error, nil)
-     |> stream(:exports, [])}
+    socket =
+      socket
+      |> assign(:page_title, "CSV Exports")
+      |> assign(:current_path, "/hawk_ex/csv")
+      |> assign(:total_pages, 1)
+      |> assign(:total_count, 0)
+      |> assign(:sort_field, "inserted_at")
+      |> assign(:sort_dir, "desc")
+      |> assign(:loading, true)
+      |> assign(:error, nil)
+      |> assign(:compact, false)
+      |> stream(:exports, [])
+
+    {:ok, socket}
   end
 
   @impl true
@@ -69,6 +72,7 @@ defmodule HawkExDashboard.CsvLive do
         total_pages={@total_pages}
         total_count={@total_count}
         sort_field={@sort_field}
+        compact={@compact}
         sort_dir={@sort_dir}
         search={@search}
         search_placeholder="Search by export type…"

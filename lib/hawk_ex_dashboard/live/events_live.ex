@@ -12,16 +12,19 @@ defmodule HawkExDashboard.EventsLive do
   def mount(_params, _session, socket) do
     if connected?(socket), do: Events.subscribe()
 
-    {:ok,
-     socket
-     |> assign(:page_title, "Events")
-     |> assign(:current_path, "/hawk_ex/events")
-     |> assign(:paused, false)
-     |> assign(:buffer_count, 0)
-     |> assign(:filter_type, "all")
-     |> stream(:events, [])
-     |> assign(:event_buffer, [])
-     |> assign(:event_count, 0)}
+    socket =
+      socket
+      |> assign(:page_title, "Events")
+      |> assign(:current_path, "/hawk_ex/events")
+      |> assign(:paused, false)
+      |> assign(:buffer_count, 0)
+      |> assign(:filter_type, "all")
+      |> stream(:events, [])
+      |> assign(:event_buffer, [])
+      |> assign(:event_count, 0)
+      |> assign(:compact, false)
+
+    {:ok, socket}
   end
 
   @impl true
@@ -135,6 +138,7 @@ defmodule HawkExDashboard.EventsLive do
       <.table
         id="events-table"
         stream={@streams.events}
+        compact={@compact}
         show_search={false}
         loading={false}
         empty_title="Waiting for events…"

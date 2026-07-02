@@ -36,6 +36,8 @@ defmodule HawkExDashboard.Table do
   attr(:sort_field, :string, default: nil)
   attr(:sort_dir, :string, default: "desc")
 
+  attr(:compact, :boolean, default: false)
+
   slot :col, required: true do
     attr(:label, :string, required: true)
     attr(:sortable, :boolean)
@@ -48,20 +50,42 @@ defmodule HawkExDashboard.Table do
       <div class="card-body p-0">
 
         <%!-- Toolbar --%>
-        <div class="flex items-center gap-4 p-4 border-b border-base-300">
+        <div class="flex items-center justify-between  p-4 border-b border-base-300">
+          <div class="flex items-center gap-4">
+
           <.search
             search={@search}
             search_placeholder={@search_placeholder}
             show_search={@show_search}
           />
-          <p :if={@total_count != nil} class="text-xs text-base-content/50">
-            {@total_count} total
+           <p :if={@total_count != nil} class="text-xs shrink-0 text-base-content/50">
+                {@total_count} total
           </p>
+          </div>
+
+          <button
+            phx-click="table_density"
+            class="btn btn-ghost btn-sm opacity-50 hover:opacity-100"
+            title={if @compact, do: "Switch to comfortable view", else: "Switch to compact view"}
+          >
+            <svg :if={!@compact} xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+              viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M3.75 5.25h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5" />
+            </svg>
+
+            <svg :if={@compact} xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+              viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+          </button>
+
         </div>
 
         <%!-- Table --%>
         <div class="overflow-x-auto">
-          <table :if={!@error} class={["table", !@loading && "table-zebra"]}>
+          <table :if={!@error} class={["table", !@loading && "table-zebra",@compact && "table-xs"]}>
             <thead>
               <tr>
                 <th :for={col <- @col} >

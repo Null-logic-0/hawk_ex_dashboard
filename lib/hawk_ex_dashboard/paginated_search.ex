@@ -111,6 +111,10 @@ defmodule HawkExDashboard.PaginatedSearch do
          )}
       end
 
+      def handle_event("table_density", _params, socket) do
+        {:noreply, Phoenix.Component.assign(socket, :compact, !socket.assigns[:compact])}
+      end
+
       def handle_event("table_retry", _params, socket) do
         socket = Phoenix.Component.assign(socket, loading: true, error: nil)
         {:noreply, load_data(socket, socket.assigns.page, socket.assigns.search)}

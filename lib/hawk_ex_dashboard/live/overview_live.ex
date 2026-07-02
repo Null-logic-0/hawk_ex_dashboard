@@ -10,17 +10,20 @@ defmodule HawkExDashboard.OverviewLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok,
-     socket
-     |> assign(:page_title, "Overview")
-     |> assign(:current_path, @path)
-     |> assign(:sort_field, "inserted_at")
-     |> assign(:sort_dir, "desc")
-     |> assign(:total_pages, 1)
-     |> assign(:total_count, 0)
-     |> assign(:loading, true)
-     |> assign(:error, nil)
-     |> stream(:recent_events, [])}
+    socket =
+      socket
+      |> assign(:page_title, "Overview")
+      |> assign(:current_path, @path)
+      |> assign(:sort_field, "inserted_at")
+      |> assign(:sort_dir, "desc")
+      |> assign(:total_pages, 1)
+      |> assign(:total_count, 0)
+      |> assign(:loading, true)
+      |> assign(:error, nil)
+      |> assign(:compact, false)
+      |> stream(:recent_events, [])
+
+    {:ok, socket}
   end
 
   @impl true
@@ -68,6 +71,7 @@ defmodule HawkExDashboard.OverviewLive do
         id="overview-recent-activity"
         stream={@streams.recent_events}
         page={@page}
+        compact={@compact}
         total_pages={@total_pages}
         total_count={@total_count}
         sort_field={@sort_field}
